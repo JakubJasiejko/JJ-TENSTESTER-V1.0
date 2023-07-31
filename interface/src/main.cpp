@@ -5,29 +5,29 @@
 
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
-int lcd_key = 0;
-int adc_key_in = 0;
+int buttons = 0;
+int adc = 0;
 
 
-#define btnRIGHT  0
-#define btnUP     1
-#define btnDOWN   2
-#define btnLEFT   3
-#define btnSELECT 4
-#define btnNONE   5
+#define RIGHT  0
+#define UP     1
+#define DOWN   2
+#define LEFT   3
+#define SELECT 4
+#define NONE   5
 
 int read_LCD_buttons() {
   
-  adc_key_in = analogRead(0);       
+  adc = analogRead(0);       
   
-  if (adc_key_in > 1000) return btnNONE;
-  if (adc_key_in < 50)   return btnRIGHT;
-  if (adc_key_in < 250)  return btnUP;
-  if (adc_key_in < 450)  return btnDOWN;
-  if (adc_key_in < 650)  return btnLEFT;
-  if (adc_key_in < 850)  return btnSELECT;
+  if (adc > 1000) return NONE;
+  if (adc < 50)   return RIGHT;
+  if (adc < 250)  return UP;
+  if (adc < 450)  return DOWN;
+  if (adc < 650)  return LEFT;
+  if (adc < 850)  return SELECT;
 
-  return btnNONE;
+  return NONE;
 }
 
 
@@ -58,8 +58,29 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  int j = 0;
 
+  buttons = read_LCD_buttons();
+  switch (buttons)
+  {
+  case SELECT:
+    {
+
+      break;
+    }
+    case LEFT:
+    {
+
+      break;
+    }
+      case RIGHT:
+    {
+
+      break;
+    }
+    case NONE:
+    {
+
+  
   for (int k = 0; k < 5; k++)
   {
     String text = " ";
@@ -94,14 +115,12 @@ void loop() {
     }
 
     lcd.clear();
+
+   
+      
+      
   }
-}
-void testtextdisplay()
-{
-
-
-
-
-
-  
+    break;
+    }
+  }
 }
