@@ -6,6 +6,7 @@
 //stepper motors and motion
 
 #define steps 200   //amount of steps per one revolution stepper motor 
+float oneStepAngle = 1.8;
 
 #define DIR1 7
 #define STEP1 6
@@ -24,22 +25,35 @@ BasicStepperDriver stepper1(steps, DIR2, STEP2);
 SyncDriver controller(stepper,stepper1);
 
 int pitch = 2;    //pitch of trapezoidal screw
-int p = 13.73;    // stepper motor gear ratio
+float p = 13.73;    // stepper motor gear ratio
 
 
 int v1 = 25; // velocity for slow test [mm/min]
 int v2 = 30; //velocity for fast test [mm/min]
 
+
 #define step 1.8    //angle of one step stepper motor w/o gearbox
 
-//#define turn 20 //(360*p) //TU ZMIENIASZ, ile obrotow dla prob szybkiej i wolnej
 
-int oneRevolution = 360 * p;
+float oneRevolution = 360 * p;
 
-#define turn oneRevolution * 4
+float numOfRot = 4;   //number of rotations for fast and slow tests
 
-#define turnY oneRevolution * 2 //TU ZMIENIASZ, ile obrotow dla 1 czesci modulu Younga
-#define turnY1 oneRevolution * 2 //TU ZMIENIASZ, ile obrotow dla 2 czesci modulu Younga
+
+
+float turn = oneRevolution * numOfRot;
+float numOfSteps = turn / oneStepAngle;
+
+
+float numOfRotY = 2;    //number of rotations for first part of Young Modulus test
+float numOfRotY1 = 2;    //number of rotations for second part of Young Modulus test
+
+
+#define turnY oneRevolution * numOfRotY //TU ZMIENIASZ, ile obrotow dla 1 czesci modulu Younga
+#define turnY1 oneRevolution * numOfRotY1 //TU ZMIENIASZ, ile obrotow dla 2 czesci modulu Younga
+
+float numOfStepsY = turnY / oneStepAngle;
+float numOfStepsY1 = turnY1 / oneStepAngle;
 
 #define RPMJOG ((v1*p)/(pitch)) //predkosc dla JOG
 #define turnJOG oneRevolution * 2 //wartosc obrotu dla JOG, przy jednym przycisnieciu przycisku
@@ -61,6 +75,13 @@ const int SCKpin = 3;   //SCK
 HX711_ADC LoadCell(DTpin, SCKpin);
 
 unsigned long time = 0;
+unsigned long currentTime = 0;
+
+double lenghtPerOneRevolution = ((numOfRot * pitch)/numOfSteps);
+double lenghtPerOneRevolutionYoungModulus = (((numOfRotY + numOfRotY1) * pitch)/numOfSteps);
+
+int z = 0;    //CZY POMIAR ZACZYNA SIE OD ZERA?????
+int l = 0;
 
 void setup() {
 
@@ -95,21 +116,68 @@ Serial.println("URZĄDZENIE GOTOWE");
 
 void measurment() {
   static boolean newData = 0;
-  const int PrintInterval = 5; 
   
   
   if (LoadCell.update()) newData = true;
-  
+ 
   if (newData) {
-    if (millis() > time + PrintInterval) {
+    
+    
+    if (millis() > time) {
       
       float measurment = LoadCell.getData();
-      Serial.println(measurment);
+      
+
+            double displacement =lenghtPerOneRevolution * z;
+            Serial.print("MEASURMENT [N]");
+            Serial.print(measurment , 6);
+            Serial.print('\t');
+            Serial.print("DISPLACEMENT [MM]");
+            Serial.print(displacement , 6);          
+            Serial.println();
+
       newData = 0;
       time = millis();
+      
+  
     }
+  
   }
+
 }
+
+void measurmentYoungModulus() {
+  static boolean newData = 0;
+  
+  
+  if (LoadCell.update()) newData = true;
+ 
+  if (newData) {
+    
+    
+    if (millis() > time) {
+      
+      float measurment = LoadCell.getData();
+      
+
+            double displacement =lenghtPerOneRevolutionYoungModulus * l;
+            Serial.print("MEASURMENT [N]");
+            Serial.print(measurment , 6);
+            Serial.print('\t');
+            Serial.print("DISPLACEMENT [MM]");
+            Serial.print(displacement , 6);
+            Serial.println();
+
+      newData = 0;
+      time = millis();
+      
+  
+    }
+  
+  }
+
+}
+
 
 void loop() {
   
@@ -201,36 +269,42 @@ void loop() {
             if(slow == true)
               {
                 controller.setRPM(RPM1);
-                for(int i = 0; i <= (turn/1.8); i++)
+                for(int i = 0; i <= (numOfSteps); i++)
                   { 
                   controller.rotate(step , step);
                   measurment();
+                  z++;
                   }
               }
             else
               {
                 controller.setRPM(RPM2);
-                for(int i = 0; i <= (turn/1.8); i++)
+                for(int i = 0; i <= (numOfSteps); i++)
                   { 
                   controller.rotate(step , step);
                   measurment();
+                  z++;
                  }
               }
 
             if(young == true)
               {
                 controller.setRPM(RPM1);
-                while (j<1)
-                 { 
-                  for(int i = 0; i <= (turn/1.8); i++)
+
+                  for(int i = 0; i <= (numOfStepsY); i++)
                     { 
                     controller.rotate(step , step);
-                    measurment();
-                    }
+                    measurmentYoungModulus();                  
+                     }
                   controller.setRPM(RPM2);
-                  j++;
-                  }
 
+                  for(int i = 0; i <= (numOfStepsY1); i++)
+                    { 
+                    controller.rotate(step , step);
+                    measurmentYoungModulus();                  
+                     }
+
+                  l++;
               }
                 
               }
@@ -250,7 +324,7 @@ void loop() {
 
               }
 
-
+      z = 0;
 
       movenent = false;
       slow = false;
