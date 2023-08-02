@@ -1,10 +1,17 @@
 /*
 JJTENSTESTER v1.0 by Jakub Jasiejko
+
+gitHub link: https://github.com/JakubJasiejko/JJ-TENSTESTER-V1.0.git
+
 august 2023r
+
 Used libraries: 
   - StepperDriver library by Laurentiu Badea: https://github.com/laurb9/StepperDriver/tree/master
   - HX711_ADC library by Olav Kallhovd: https://github.com/olkal/HX711_ADC
+
 Project licensed by MIT license
+
+Firmware for main Arduino board, which works with stepper motors and loadCell. 
 */
 
 #include <Arduino.h>
@@ -88,7 +95,7 @@ HX711_ADC LoadCell(DTpin, SCKpin);  //initiallizing loadCell
 unsigned long time = 0;
 unsigned long currentTime = 0;
 
-double lenghtPerOneRevolution = ((numOfRot * pitch)/numOfSteps);
+double lenghtPerOneRevolution = ((numOfRot * pitch)/numOfSteps); //needed for displacement calculation
 double lenghtPerOneRevolutionYoungModulus = (((numOfRotY + numOfRotY1) * pitch)/(numOfStepsY + numOfStepsY1));
 
 int z = 0;    
@@ -100,9 +107,9 @@ float calValue = -310.10; // calibration value
 
 Serial.begin(9600);
 
-Serial.println("TENSTESTER V1.0");
-Serial.println("POWERED BY JJ");
-Serial.println("STARTING...");
+//Serial.println("TENSTESTER V1.0");    //uncomment if you don't want to use matlab
+//Serial.println("POWERED BY JJ");
+//Serial.println("STARTING...");
 
 stepper.begin(V,MS);  //steppers innitializing
 stepper1.begin(V,MS);
@@ -114,7 +121,7 @@ LoadCell.begin();
   LoadCell.start(stabTime, tare);
   if (LoadCell.getTareTimeoutFlag()) 
     {
-      Serial.println("CHECK LOADCELL WIRING!");
+      //Serial.println("CHECK LOADCELL WIRING!"); //uncomment if you don't want to use matlab or for diagnostics
       while (1);
     }
   else 
@@ -122,7 +129,7 @@ LoadCell.begin();
       LoadCell.setCalFactor(calValue); 
     }
 
-Serial.println("READY");
+//Serial.println("READY");
 }
 
 
@@ -143,12 +150,14 @@ void measurment() {
       float measurment = LoadCell.getData();
       
 
-            double displacement =lenghtPerOneRevolution * z;
-            Serial.print("MEASURMENT [N]");
+            float displacement =lenghtPerOneRevolution * z;
+            //Serial.print("MEASURMENT [N]");   //uncomment if you don't want to use matlab
             Serial.print(measurment , 6);
             Serial.print('\t');
-            Serial.print("DISPLACEMENT [MM]");
-            Serial.print(displacement , 6);          
+            Serial.print(",");
+            Serial.print('\t');
+            //Serial.print("DISPLACEMENT [MM]");    //uncomment if you don't want to use matlab
+            Serial.print(displacement , 6);
             Serial.println();
 
       newData = 0;
@@ -175,11 +184,13 @@ void measurmentModulus() {
       float measurment = LoadCell.getData();
       
 
-            double displacement =lenghtPerOneRevolutionYoungModulus * l;
-            Serial.print("MEASURMENT [N]");
+            float displacement =lenghtPerOneRevolutionYoungModulus * l;
+            //Serial.print("MEASURMENT [N]");   //uncomment if you don't want to use matlab
             Serial.print(measurment , 6);
             Serial.print('\t');
-            Serial.print("DISPLACEMENT [MM]");
+            Serial.print(",");
+            Serial.print('\t');
+            //Serial.print("DISPLACEMENT [MM]");    //uncomment if you don't want to use matlab
             Serial.print(displacement , 6);
             Serial.println();
 
@@ -263,7 +274,7 @@ void loop() {
  
       if (command == "M11") //test slow
       {
-        Serial.println("SLOW TEST STARTED");
+        //Serial.println("SLOW TEST STARTED");    //uncomment if you don't want to use matlab
       
         slow = true;
 
@@ -271,7 +282,7 @@ void loop() {
       }
       else if (command == "M12") //test szybki
       {
-        Serial.println("FAST TEST STARTED");
+       // Serial.println("FAST TEST STARTED");    //uncomment if you don't want to use matlab
 
         fast = true;
 
@@ -282,15 +293,15 @@ void loop() {
       else if (command == "M13") //test modułu Younga
       
       {
-        Serial.println("YOUNG MODULUS TEST STARTED");
+       // Serial.println("YOUNG MODULUS TEST STARTED");   //uncomment if you don't want to use matlab
         modulusTest();
 
       }
       
       else if (command == "M1")
       {
-        Serial.println ("UPWARD MOVEMENT STARTED");
-        Serial.println ("BE CAREFUL!");
+        //Serial.println ("UPWARD MOVEMENT STARTED");   //uncomment if you don't want to use matlab
+       // Serial.println ("BE CAREFUL!");
         
         up = true;
 
@@ -300,8 +311,8 @@ void loop() {
       else if (command == "M2")
       {
         
-        Serial.println ("DOWNWARD MOVEMENT STARTED");
-        Serial.println ("BE CAREFUL!");
+        //Serial.println ("DOWNWARD MOVEMENT STARTED");   //uncomment if you don't want to use matlab
+        //Serial.println ("BE CAREFUL!");
 
         down = true;
 
@@ -310,7 +321,7 @@ void loop() {
       else
       
       {
-        Serial.println ("UNKNOWN COMMAND");
+        //Serial.println ("UNKNOWN COMMAND");   //uncomment if you don't want to use matlab or for diagnostics
       }
 
     }
