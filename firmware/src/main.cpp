@@ -61,11 +61,13 @@ float numOfStepsY1 = turnY1 / oneStepAngle;
 #define RPM1 ((v1*p)/(pitch))
 #define RPM2 ((v2*p)/(pitch))
 
-bool movenent = false;
 bool slow = false;
 bool young = false;
 bool up = false;
 bool down = false;
+bool fast = true;
+
+float JOG = 0;
 
 //loadcell
 
@@ -78,7 +80,7 @@ unsigned long time = 0;
 unsigned long currentTime = 0;
 
 double lenghtPerOneRevolution = ((numOfRot * pitch)/numOfSteps);
-double lenghtPerOneRevolutionYoungModulus = (((numOfRotY + numOfRotY1) * pitch)/numOfSteps);
+double lenghtPerOneRevolutionYoungModulus = (((numOfRotY + numOfRotY1) * pitch)/(numOfStepsY + numOfStepsY1));
 
 int z = 0;    //CZY POMIAR ZACZYNA SIE OD ZERA?????
 int l = 0;
@@ -114,6 +116,10 @@ LoadCell.begin();
 Serial.println("URZĄDZENIE GOTOWE");
 }
 
+
+
+
+
 void measurment() {
   static boolean newData = 0;
   
@@ -146,7 +152,7 @@ void measurment() {
 
 }
 
-void measurmentYoungModulus() {
+void measurmentModulus() {
   static boolean newData = 0;
   
   
@@ -177,45 +183,90 @@ void measurmentYoungModulus() {
   }
 
 }
+void modulusTest()
 
+{
+  controller.setRPM(RPM1);
+
+  for(int i = 0; i <= (numOfStepsY); i++)
+  { 
+    controller.rotate(step , step);
+    measurmentModulus();
+    l++;                  
+   }
+    controller.setRPM(RPM2);
+
+    for(int i = 0; i <= (numOfStepsY1); i++)
+   { 
+    controller.rotate(step , step);
+    measurmentModulus();
+    l++;              
+   }
+
+}
+void Test()
+{
+
+  
+  if(slow == true)
+    {
+      controller.setRPM(RPM1);
+    }
+  else if(fast == true)
+    {
+      controller.setRPM(RPM2);
+
+    }
+
+  for(int i = 0; i <= (numOfSteps); i++)
+   { 
+    controller.rotate(step , step);
+    measurment();
+    z++;
+  }
+}
+void jog()
+ {
+
+  
+  if(up == true)
+    {
+      controller.setRPM(RPMJOG);
+      controller.rotate(turnJOG ,turnJOG);  
+    }
+  else if(down == true)
+    {
+      controller.setRPM(RPMJOG);
+      controller.rotate(-turnJOG ,-turnJOG);      
+
+    }
+}    
 
 void loop() {
   
 
   String command = " ";
-  int j = 0;
+
 
   if (Serial.available() > 0)
     {
     command = Serial.readStringUntil('\n');
-      if (command == "M10") //STOP
-       {
-
-        movenent = false;
-        slow = false;
-        young = false;
-        
-
-      }
-      else if (command == "M11") //test slow
+ 
+      if (command == "M11") //test slow
       {
         Serial.println("ROZPOCZYNAM TEST WOLNY");
-
-        movenent = true;
+      
         slow = true;
-        young = false;
-        up = false;
-        down = false;
+
+        Test();
       }
       else if (command == "M12") //test szybki
       {
         Serial.println("ROZPOCZYNAM TEST SZYBKI");
 
-        movenent = true;
-        slow = false;
-        young = false;
-        up = false;
-        down = false;
+        fast = true;
+
+        Test();
 
       }
       
@@ -223,12 +274,8 @@ void loop() {
       
       {
         Serial.println("ROZPOCZYNAM TEST MODULU YOUNGA");
-        
-        movenent = true;
-        slow = false;
-        young = true;
-        up = false;
-        down = false;
+        modulusTest();
+
       }
       
       else if (command == "M1")
@@ -236,12 +283,9 @@ void loop() {
         Serial.println ("ROZPOCZYNAM movenent W GORE");
         Serial.println ("ZACHOWAJ OSTROZNOSC ABY NIE USZKODZIC URZADZENIA");
         
-        movenent = false;
-        slow = false;
-        young = false;
         up = true;
-        down = false;
 
+        jog();
       }
       
       else if (command == "M2")
@@ -249,13 +293,10 @@ void loop() {
         
         Serial.println ("ROZPOCZYNAM movenent W DOL");
         Serial.println ("ZACHOWAJ OSTROZNOSC ABY NIE USZKODZIC URZADZENIA");
-        
-        movenent = false;
-        slow = false;
-        young = false;
-        up = false;
+
         down = true;
 
+        jog();
       }
       else
       
@@ -264,74 +305,19 @@ void loop() {
       }
 
     }
-           if(movenent == true)
-       {
-            if(slow == true)
-              {
-                controller.setRPM(RPM1);
-                for(int i = 0; i <= (numOfSteps); i++)
-                  { 
-                  controller.rotate(step , step);
-                  measurment();
-                  z++;
-                  }
-              }
-            else
-              {
-                controller.setRPM(RPM2);
-                for(int i = 0; i <= (numOfSteps); i++)
-                  { 
-                  controller.rotate(step , step);
-                  measurment();
-                  z++;
-                 }
-              }
 
-            if(young == true)
-              {
-                controller.setRPM(RPM1);
 
-                  for(int i = 0; i <= (numOfStepsY); i++)
-                    { 
-                    controller.rotate(step , step);
-                    measurmentYoungModulus();                  
-                     }
-                  controller.setRPM(RPM2);
-
-                  for(int i = 0; i <= (numOfStepsY1); i++)
-                    { 
-                    controller.rotate(step , step);
-                    measurmentYoungModulus();                  
-                     }
-
-                  l++;
-              }
-                
-              }
-            if (up == true) 
-            
-              {
-
-                controller.setRPM(RPMJOG);
-                controller.rotate(turnJOG ,turnJOG);
-
-              }
-              if (down == true)
-              {
-                  
-                  controller.setRPM(RPMJOG);
-                  controller.rotate(-turnJOG , -turnJOG);
-
-              }
-
-      z = 0;
-
-      movenent = false;
       slow = false;
+      fast = false;
       young = false;
       up = false;
       down = false;
+      z = 0;
+      l = 0;
 }
+
+
+
 
 
 
