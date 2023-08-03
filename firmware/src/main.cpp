@@ -1,9 +1,9 @@
 /*
-JJTENSTESTER v1.0 by Jakub Jasiejko
+JJ TENSTESTER v1.0 by Jakub Jasiejko
 
 gitHub link: https://github.com/JakubJasiejko/JJ-TENSTESTER-V1.0.git
 
-august 2023r
+august 2023
 
 Used libraries: 
   - StepperDriver library by Laurentiu Badea: https://github.com/laurb9/StepperDriver/tree/master

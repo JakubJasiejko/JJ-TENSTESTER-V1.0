@@ -60,6 +60,7 @@ while true
 
         data = readline(Device); 
         data = str2double(strsplit(data, ',')); 
+        measurement = data(1);
         displacement = data(2);
         
         measurmentData = [measurmentData, measurement];
@@ -67,7 +68,9 @@ while true
 
         figure(2);
         plot(displacementData , measurmentData);
-       
+        title("FORCE TO DISPLACEMENT DIAGRAM");
+        xlabel("dispacement [mm]");
+        ylabel("force [N]");
     end
 end
 
