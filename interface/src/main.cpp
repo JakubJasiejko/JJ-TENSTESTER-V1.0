@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <LiquidCrystal.h>
+#include <Wire.h>
 
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
@@ -33,6 +34,8 @@ int read_LCD_buttons() {
 
 void setup() {
 
+   Wire.begin(9);
+  
   lcd.begin(16 , 2);
 
   lcd.setCursor(0 , 0);
@@ -48,40 +51,12 @@ void setup() {
   for(int i = 0; i < 37; i++)
     {
       lcd.scrollDisplayLeft();
-      delay(500);
+      delay(300);
     }
+
   lcd.clear();
- 
-}
 
-
-void loop() {
-  // put your main code here, to run repeatedly:
-
-
-  buttons = read_LCD_buttons();
-  switch (buttons)
-  {
-  case SELECT:
-    {
-
-      break;
-    }
-    case LEFT:
-    {
-
-      break;
-    }
-      case RIGHT:
-    {
-
-      break;
-    }
-    case NONE:
-    {
-
-  
-  for (int k = 0; k < 5; k++)
+    for (int k = 0; k < 5; k++)
   {
     String text = " ";
     if (k == 0)
@@ -108,19 +83,81 @@ void loop() {
     lcd.setCursor(16, 0);
     lcd.print(text);
 
-    for (int i = 0; i < 20; i++) // Remove the semicolon after the for loop
+    for (int i = 0; i < 20; i++) 
     {
       lcd.scrollDisplayLeft();
-      delay(500);
+      delay(300);
     }
 
     lcd.clear();
-
-   
-      
-      
+ 
+}
+}
+void testStarted()
+  {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("TEST STARTED");
+    Wire.beginTransmission(9);
+    
   }
-    break;
+void movementStarted ()
+  {
+    lcd.setCursor (0, 0);
+    lcd.print("MOVEMENT STARTED");
+  }
+  void testEnd()
+    {
+      Wire.endTransmission();
+      delay(1000);
+     
+    }
+
+void loop() {
+  lcd.setCursor(0, 1);
+  buttons = read_LCD_buttons();
+
+  switch (buttons) {
+    case LEFT:
+    {
+      
+      testStarted (); 
+      Wire.write(1);
+      testEnd();
+
+     break; 
+    }
+    case RIGHT:
+    { 
+      testStarted (); 
+      Wire.write(1);
+      testEnd();
+
+     break; 
+    }
+    case UP:
+    {
+      movementStarted (); 
+      Wire.write(1);
+      testEnd();
+
+     break; 
+    }
+    case DOWN:
+    {
+      movementStarted (); 
+      Wire.write(1);
+      testEnd();
+
+     break; 
+    }
+  case NONE:
+    {
+      
+      lcd.setCursor(0, 0);
+      lcd.print("PRESS BUTTON");
+
+     break; 
+    }
     }
   }
-}

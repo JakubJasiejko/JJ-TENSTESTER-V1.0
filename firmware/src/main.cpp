@@ -87,8 +87,8 @@ float JOG = 0;
 
 //loadcell
 
-const int DTpin = 2;    //DOUT pin HX711 ADX
-const int SCKpin = 3;   //SCK
+const int DTpin = 11;    //DOUT pin HX711 ADX
+const int SCKpin = 13;   //SCK
 
 HX711_ADC LoadCell(DTpin, SCKpin);  //initiallizing loadCell
 
@@ -244,6 +244,9 @@ void Test()
     measurment();
     z++;
   }
+            
+
+            
 }
 void jog()
  {
@@ -335,6 +338,14 @@ void loop() {
       z = 0;
       l = 0;
 }
+
+
+
+
+
+
+
+
 
 
 
