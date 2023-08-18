@@ -15,11 +15,12 @@
  function Control()
   
  crossSectionalArea = 0;
+ initialLenght = 0;
 
  
- Device = serialport("COM7", 9600); %% Wybierz właściwy port COM, do którego jest podłączona płytka Arduino.
+ Device = serialport("COM7", 9600); %% set yours COM port
 
-% Tworzenie przycisków
+% initial menu
 figure(1);
 button1 = uicontrol('Style', 'pushbutton', 'String', 'SLOW TEST', 'Position', [10 200 100 30], 'Callback', @startSlowTest);
 button2 = uicontrol('Style', 'pushbutton', 'String', 'FAST TEST', 'Position', [10 160 100 30], 'Callback', @startFastTest);
@@ -29,13 +30,17 @@ button5 = uicontrol('Style', 'pushbutton', 'String', 'DOWNWARD MOVEMENT', 'Posit
 resetButton = uicontrol('Style', 'pushbutton', 'String', 'RESET PLOT', 'Position', [10 10 100 30], 'Callback', @resetPlot);
 disableButton = uicontrol('Style', 'pushbutton', 'String', 'TURN OFF', 'Position', [10 240 100 30], 'Callback', @turnOff);
 
-fig = figure('Position', [100, 100, 300, 150], 'Name', 'Enter values', 'NumberTitle', 'off', 'MenuBar', 'none');
+%values menu
+fig = figure('Position', [100, 100, 600, 300], 'Name', 'Enter values', 'NumberTitle', 'off', 'MenuBar', 'none');
 
-prompt1 = uicontrol('Style', 'text', 'Position', [20, 100, 100, 20], 'String', 'first side lenght [mm]:');
-edit1 = uicontrol('Style', 'edit', 'Position', [120, 100, 100, 20]);
+prompt1 = uicontrol('Style', 'text', 'Position', [20, 150, 100, 20], 'String', 'first side lenght [mm]:');
+edit1 = uicontrol('Style', 'edit', 'Position', [120, 150, 100, 20]);
 
-prompt2 = uicontrol('Style', 'text', 'Position', [20, 70, 100, 20], 'String', 'second side lenght [mm]:');
-edit2 = uicontrol('Style', 'edit', 'Position', [120, 70, 100, 20]);
+prompt2 = uicontrol('Style', 'text', 'Position', [20, 100, 100, 20], 'String', 'second side lenght [mm]:');
+edit2 = uicontrol('Style', 'edit', 'Position', [120, 100, 100, 20]);
+
+prompt3 = uicontrol('Style', 'text', 'Position', [20, 70, 100, 20], 'String', 'initial lenght [mm]:');
+edit3 = uicontrol('Style', 'edit', 'Position', [120, 70, 100, 20]);
 
 confirmButton = uicontrol('Style', 'pushbutton', 'Position', [100, 0, 100, 30], 'String', 'Confirm', 'Callback', @confirmCallback);
 
@@ -52,17 +57,20 @@ maxForceValue = 0;
         
         a = str2double(get(edit1, 'String')); %first side lenght [mm]
         b = str2double(get(edit2, 'String')); %second side lenght [mm]
+        c = str2double(get(edit3, 'string')); %initial lenght [mm]
 
         % Sprawdzanie, czy wprowadzone wartości są poprawne
-        if ~isnan(a) && ~isnan(b)
+        if ~isnan(a) && ~isnan(b) && ~isnan(c) 
             % Przypisywanie wartości do zmiennych w kodzie
             sideLenghtA = a;
              sideLenghtB = b;
+             initialLenght = c;
              crossSectionalArea = a * b;
             
             % Wyświetlanie przypisanych wartości
            disp(['A side lenght: ', num2str(sideLenghtA), '[mm]']);
            disp(['B side lenght: ', num2str(sideLenghtB), '[mm]']);
+           disp(['initial lenght: ',num2str(initialLenght),'[mm]']);
            disp('Cross sectional area:')
            disp(num2str(crossSectionalArea));
            disp('[mm^2]')
@@ -125,16 +133,27 @@ while true
 
     % Aktualizacja największej wartości siły
     maxForceValue = max(maxForceValue, max(measurmentData));
+    
     maxTensStrenght = maxForceValue / crossSectionalArea;
-    % Dodanie tekstu z największą wartością siły na wykresie
     
 text(0.7, 0.9, ['Max Force: ' num2str(maxForceValue)], 'Units', 'normalized');
 text(0.7, 0.8, ['Tensile strength: ' num2str(maxTensStrenght)], 'Units', 'normalized');
     drawnow; % Aktualizacja wykresu
 
+tensStrenght = measurmentData / crossSectionalArea;
+elongation = (displacementData / initialLenght) *100; %%PERCENT
+
+figure(3);
+   plot(elongation, tensStrenght);
+   title("TENSION TO ELONGATION DIAGRAM");
+   xlabel("elongation [%]");
+   ylabel("tension [MPa]");
+   
 end
 
 end
 
 
 %%error powoduje niewyswietlanie wykresu!!!! error num2str
+
+
