@@ -71,7 +71,7 @@ float numOfRotY1 = 8;    //number of revolutions for second part of Young Modulu
 float numOfStepsY = turnY / oneStepAngle;   //number of steps need for first part of Young modulus test revolutions
 float numOfStepsY1 = turnY1 / oneStepAngle;   //number of steps need for second part of Young modulus test revolutions
 
-#define RPMJOG ((v1*p)/(pitch)) //velocity for JOG movement
+#define RPMJOG 300 //velocity for JOG movement
 #define turnJOG oneRevolution * 2 //number of revolutions per one command sending for JOG
 
 #define RPM1 ((v1*p)/(pitch))   //RPM for slow test and first part of Young modulus test
@@ -101,6 +101,15 @@ double lenghtPerOneRevolutionYoungModulus = (((numOfRotY + numOfRotY1) * pitch)/
 int z = 0;    
 int l = 0;
 
+//buttons
+
+const int upButton = 2;   
+const int downButton = 3;
+  
+
+int upButtonState = 0;     
+int downButtonState = 0; 
+
 void setup() {
 
 float calValue = -310.10; // calibration value
@@ -110,6 +119,9 @@ Serial.begin(9600);
 //Serial.println("TENSTESTER V1.0");    //uncomment if you don't want to use matlab
 //Serial.println("POWERED BY JJ");
 //Serial.println("STARTING...");
+
+pinMode(upButton, INPUT_PULLUP);     
+pinMode(downButton, INPUT_PULLUP);
 
 stepper.begin(V,MS);  //steppers innitializing
 stepper1.begin(V,MS);
@@ -330,6 +342,8 @@ void loop() {
     }
 
 
+      
+      
       slow = false;
       fast = false;
       young = false;
@@ -337,19 +351,18 @@ void loop() {
       down = false;
       z = 0;
       l = 0;
-}
 
+  upButtonState = digitalRead(upButton);  
+  downButtonState = digitalRead(downButton);
+ 
+  if (upButtonState == LOW) 
+    {
+      controller.rotate(20, 20);;  
+    } 
+  if (downButtonState == LOW)
+    {
+      controller.rotate(-20, -20);
+    }
+  
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+  }
