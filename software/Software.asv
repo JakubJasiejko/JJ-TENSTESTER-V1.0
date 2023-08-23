@@ -18,7 +18,7 @@
  initialLenght = 0;
 
  
- Device = serialport("COM7", 9600); %% set yours COM port
+ Device = serialport("COM9", 9600); %% set yours COM port
 
 % initial menu
 figure(1);
@@ -117,7 +117,7 @@ maxForceValue = 0;
      end
 
 while true
-    data = readline(Device);
+    data = num2strreadline(Device);
     data = str2double(strsplit(data, ','));
     measurement = data(1);
     displacement = data(2);
@@ -155,5 +155,3 @@ end
 
 
 %%error powoduje niewyswietlanie wykresu!!!! error num2str
-
-

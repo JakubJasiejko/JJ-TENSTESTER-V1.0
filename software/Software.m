@@ -18,7 +18,7 @@
  initialLenght = 0;
 
  
- Device = serialport("COM7", 9600); %% set yours COM port
+ Device = serialport("COM9", 9600, 'Timeout', 9999999); %% set yours COM port
 
 % initial menu
 figure(1);
@@ -155,5 +155,3 @@ end
 
 
 %%error powoduje niewyswietlanie wykresu!!!! error num2str
-
-

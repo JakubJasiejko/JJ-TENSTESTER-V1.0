@@ -8,7 +8,7 @@ august 2023
 Used libraries: 
   - StepperDriver library by Laurentiu Badea: https://github.com/laurb9/StepperDriver/tree/master
   - HX711_ADC library by Olav Kallhovd: https://github.com/olkal/HX711_ADC
-
+  - LCD library by Marco Schwartz: https://www.arduino.cc/reference/en/libraries/liquidcrystal-i2c/
 Project licensed by MIT license
 
 Firmware for main Arduino board, which works with stepper motors and loadCell. 
@@ -18,6 +18,12 @@ Firmware for main Arduino board, which works with stepper motors and loadCell.
 
 #include "SyncDriver.h"
 #include <HX711_ADC.h>
+
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27,20,4);  
+
 
 //stepper motors and motion
 
@@ -79,8 +85,6 @@ float numOfStepsY1 = turnY1 / oneStepAngle;   //number of steps need for second 
 
 bool slow = false;
 bool young = false;
-bool up = false;
-bool down = false;
 bool fast = true;
 
 float JOG = 0;
@@ -105,12 +109,51 @@ int l = 0;
 
 const int upButton = 2;   
 const int downButton = 3;
+
   
 
 int upButtonState = 0;     
 int downButtonState = 0; 
 
+
+bool lcdUp = false;
+
+
+
 void setup() {
+
+
+
+lcd.init();         
+
+lcd.backlight();
+lcd.setCursor(5,0);
+lcd.print("TENSTESTER"); 
+lcd.setCursor(4, 1);
+lcd.print("VERSION 1.0");
+ lcd.setCursor(4,2);
+lcd.print("POWER BY JJ");
+lcd.setCursor(0,3);
+lcd.print("ALL RIGHTS RESERVED");
+
+delay(2000);
+lcd.clear();
+
+lcd.setCursor (2,0);
+lcd.print("FOR USING CONNECT");
+lcd.setCursor(7, 1);
+lcd.print("DEVICE");
+lcd.setCursor(4, 2);
+lcd.print("TO COMPUTER");
+lcd.setCursor(3, 3);
+lcd.print("AND RUN MATLAB");
+ 
+ delay(2000);
+lcd.clear();
+
+lcd.setCursor(6 , 1);
+
+lcd.print("STARTING");
 
 float calValue = -310.10; // calibration value
 
@@ -123,17 +166,29 @@ Serial.begin(9600);
 pinMode(upButton, INPUT_PULLUP);     
 pinMode(downButton, INPUT_PULLUP);
 
+
 stepper.begin(V,MS);  //steppers innitializing
 stepper1.begin(V,MS);
+
+lcd.setCursor(14,1);
+
+lcd.print(".");
 
 LoadCell.begin();
  
   unsigned long stabTime = 2000; 
   boolean tare = true; 
+
+  lcd.setCursor(15,1);
+  lcd.print(".");
+
   LoadCell.start(stabTime, tare);
   if (LoadCell.getTareTimeoutFlag()) 
     {
       //Serial.println("CHECK LOADCELL WIRING!"); //uncomment if you don't want to use matlab or for diagnostics
+      lcd.clear();
+      lcd.print("CHECK LOADCELL WIRING");
+      
       while (1);
     }
   else 
@@ -142,6 +197,15 @@ LoadCell.begin();
     }
 
 //Serial.println("READY");
+lcd.setCursor(16,1);
+lcd.print(".");
+delay(200);
+
+lcd.clear();
+lcd.setCursor(3,1);
+lcd.print("DEVICE READY!");
+delay(2000);
+lcd.clear();
 }
 
 
@@ -243,10 +307,13 @@ void Test()
   if(slow == true)
     {
       controller.setRPM(RPM1);
+      
+
     }
   else if(fast == true)
     {
       controller.setRPM(RPM2);
+
 
     }
 
@@ -257,29 +324,65 @@ void Test()
     z++;
   }
             
-
+  lcd.clear();
             
 }
-void jog()
- {
 
   
-  if(up == true)
+  void jog()
+  {
+  upButtonState = digitalRead(upButton);  
+  downButtonState = digitalRead(downButton);
+
+ 
+  if (upButtonState == LOW) 
     {
+      lcdUp = true;
+     
+     
       controller.setRPM(RPMJOG);
-      controller.rotate(turnJOG ,turnJOG);  
-    }
-  else if(down == true)
+
+
+      
+      controller.rotate(360, 360);
+
+
+
+    } 
+  if (downButtonState == LOW)
     {
+
       controller.setRPM(RPMJOG);
-      controller.rotate(-turnJOG ,-turnJOG);      
+     
+      controller.rotate(-360, -360);
+
+
 
     }
-}    
+
+  }
 
 void loop() {
   
+  upButtonState = digitalRead(upButton);  
+  downButtonState = digitalRead(downButton);
+ 
+ 
+ 
+ if(upButtonState == HIGH && downButtonState == HIGH)
 
+{
+lcdUp == false;
+ 
+ lcd.setCursor(4, 0);
+ lcd.print("TO START TEST");
+ lcd.setCursor(1, 1);
+ lcd.print("CLICK MATLAB BUTTON");
+ lcd.setCursor(3, 2);
+ lcd.print("UP LEFT BUTTON");
+ lcd.setCursor(2, 3);
+ lcd.print("DOWN RIGHT BUTTON");
+ 
   String command = " ";
 
 
@@ -293,7 +396,15 @@ void loop() {
       
         slow = true;
 
+      lcd.clear();
+      lcd.setCursor(1, 1);
+      lcd.print("SLOW TEST STARTED");
+      lcd.setCursor(5, 2);
+      lcd.print("BE CAREFUL!");
+        
         Test();
+
+      lcd.clear();
       }
       else if (command == "M12") //test szybki
       {
@@ -301,45 +412,46 @@ void loop() {
 
         fast = true;
 
+      lcd.clear();
+      lcd.setCursor(1, 1);
+      lcd.print("FAST TEST STARTED");
+      lcd.setCursor(5, 2);
+      lcd.print("BE CAREFUL!");
+
         Test();
 
+
+      lcd.clear();
       }
       
       else if (command == "M13") //test modułu Younga
       
       {
        // Serial.println("YOUNG MODULUS TEST STARTED");   //uncomment if you don't want to use matlab
+      lcd.clear();
+      lcd.setCursor(0, 1);
+      lcd.print("MODULUS TEST STARTED");
+      lcd.setCursor(5, 2);
+      lcd.print("BE CAREFUL!");
+        
         modulusTest();
 
+        lcd.clear();
+
       }
       
-      else if (command == "M1")
-      {
-        //Serial.println ("UPWARD MOVEMENT STARTED");   //uncomment if you don't want to use matlab
-       // Serial.println ("BE CAREFUL!");
-        
-        up = true;
 
-        jog();
-      }
-      
-      else if (command == "M2")
-      {
-        
-        //Serial.println ("DOWNWARD MOVEMENT STARTED");   //uncomment if you don't want to use matlab
-        //Serial.println ("BE CAREFUL!");
-
-        down = true;
-
-        jog();
-      }
       else
       
       {
         //Serial.println ("UNKNOWN COMMAND");   //uncomment if you don't want to use matlab or for diagnostics
+        lcd.clear();
+        lcd.setCursor(3, 1);
+        lcd.print("UNKNOWN COMMAND!");
+        delay(5000);
       }
 
-    }
+    
 
 
       
@@ -347,22 +459,16 @@ void loop() {
       slow = false;
       fast = false;
       young = false;
-      up = false;
-      down = false;
       z = 0;
       l = 0;
 
-  upButtonState = digitalRead(upButton);  
-  downButtonState = digitalRead(downButton);
- 
-  if (upButtonState == LOW) 
-    {
-      controller.rotate(20, 20);;  
-    } 
-  if (downButtonState == LOW)
-    {
-      controller.rotate(-20, -20);
-    }
-  
+      
 
+
+}
+}
+else
+  {
+    jog();
   }
+}
