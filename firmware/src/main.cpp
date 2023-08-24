@@ -50,8 +50,8 @@ int pitch = 2;    //pitch of trapezoidal screw
 float p = 13.73;    // stepper motor gear ratio
 
 
-int v1 = 1; // velocity for slow test [mm/min]
-int v2 = 30; //velocity for fast test [mm/min]
+int v1 = 100; // velocity for slow test [mm/min]
+int v2 = 300; //velocity for fast test [mm/min]
 
 
 #define step 1.8    //angle of one step stepper motor w/o gearbox

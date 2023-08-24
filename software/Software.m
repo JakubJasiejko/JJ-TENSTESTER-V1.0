@@ -18,7 +18,7 @@
  initialLenght = 0;
 
  
- Device = serialport("COM9", 9600, 'Timeout', 9999999); %% set yours COM port
+ Device = serialport("COM9", 9600, 'Timeout', 1e9); %% set yours COM port
 
 % initial menu
 figure(1);
