@@ -91,7 +91,7 @@ float JOG = 0;
 
 //loadcell
 
-const int DTpin = 11;    //DOUT pin HX711 ADX
+const int DTpin = 11;    //DOUT pin HX711 ADC
 const int SCKpin = 13;   //SCK
 
 HX711_ADC LoadCell(DTpin, SCKpin);  //initiallizing loadCell
@@ -116,7 +116,7 @@ int upButtonState = 0;
 int downButtonState = 0; 
 
 
-bool lcdUp = false;
+
 
 
 
@@ -337,7 +337,7 @@ void Test()
  
   if (upButtonState == LOW) 
     {
-      lcdUp = true;
+    
      
      
       controller.setRPM(RPMJOG);
@@ -372,8 +372,7 @@ void loop() {
  if(upButtonState == HIGH && downButtonState == HIGH)
 
 {
-lcdUp == false;
- 
+
  lcd.setCursor(4, 0);
  lcd.print("TO START TEST");
  lcd.setCursor(1, 1);
@@ -388,6 +387,8 @@ lcdUp == false;
 
   if (Serial.available() > 0)
     {
+    
+    
     command = Serial.readStringUntil('\n');
  
       if (command == "M11") //test slow
