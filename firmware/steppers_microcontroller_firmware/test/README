@@ -1,0 +1,72 @@
+# TensTester Control Program
+
+## Jakub Jasiejko
+
+[Project on GitHub](https://github.com/JakubJasiejko/JJ-TENSTESTER-V1.0)
+
+---
+
+## License
+
+MIT License
+
+---
+
+## Program Description
+
+The Arduino program is designed to control two stepper motors as part of the TensTester v1.0 project. Communication with the microcontroller is done through the serial port (Serial). The program allows dynamic control of the motors based on received commands.
+
+---
+
+## Functionality
+
+- The program reads commands sent via the serial port.
+- A command should contain three values separated by spaces: rotational speed (RPM), rotation angle (angle), and rotation direction (direction).
+- The direction can be "left" or "right".
+- Upon receiving a valid command, the program calculates the delay based on the specified rotational speed and moves the motors by the appropriate number of steps to achieve the desired rotation angle.
+
+---
+
+## Sending Commands
+
+Send commands via the serial port using the following format:
+
+RPM angle direction 
+
+Nedded to be send as space-separated string
+
+For example: "200 2000 left"
+
+---
+
+## Class Descriptions
+
+### 1. `Pins`
+
+- File: `pins.h`
+- Purpose: Declares pin configurations for the stepper motors.
+
+### 2. `Values`
+
+- File: `values.h`
+- Purpose: Declares values such as steps, angle, RPM, and microSteppingValue.
+
+### 3. `Init`
+
+- File: `init.h`
+- Purpose: Initializes the serial communication and sets up pin modes.
+
+### 4. `Data`
+
+- File: `data.h`
+- Purpose: Processes the received command string and extracts RPM, angle, direction, and microSteppingValue.
+
+### 5. `Motion`
+
+- File: `motion.h`
+- Purpose: Moves the stepper motors based on the received command and calculated delay.
+
+### 6. `main`
+
+- File: `main.cpp`
+- Purpose: The main program file where the setup and loop functions are defined. It integrates the functionalities of the other classes.
