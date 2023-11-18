@@ -1,0 +1,17 @@
+{
+    "version": 1,
+    "author": "Jakub",
+    "editor": "wokwi",
+    "parts": [
+      { "type": "wokwi-arduino-nano", "id": "mega", "top": -52.8, "left": 76.3, "attrs": {} },
+      {
+        "type": "wokwi-hx711",
+        "id": "cell1",
+        "top": -131.8,
+        "left": 319.4,
+        "attrs": { "type": "5kg" }
+      }
+    ],
+    "connections": [ [ "cell1:DT", "mega:2", "green", [ "h0" ] ], [ "cell1:SCK", "mega:3", "green", [ "h0" ] ] ],
+    "dependencies": {}
+  }
