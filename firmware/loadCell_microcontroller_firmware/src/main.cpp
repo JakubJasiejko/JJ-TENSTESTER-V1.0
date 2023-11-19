@@ -1,34 +1,27 @@
-// Author: Jakub Jasiejko
-// Repository: [JJ-TENSTESTER-V1.0](https://github.com/JakubJasiejko/JJ-TENSTESTER-V1.0)
-// Date: 18.11.2023
-// License: MIT License
-// Library: [HX711](https://github.com/bogde/HX711) by Bogdan Necula
-//code for loadCell slave microcontroller 
-
 #include <Arduino.h>
 #include "HX711.h"
 #include <Wire.h>
 
-//pins
+// Pins
 const byte DOUT_PIN = 2;
 const byte PD_SCK_PIN = 3;
 
-//variables
-static int measurementDelay = 1; //time of delay between measurements in microseconds 
+// Variables
+static int measurementDelay = 1; // Time delay between measurements in microseconds
 unsigned long lastMeasurementTime = 0;
 unsigned long currentTimeToSend = 0;
 float timeOfMeasurement = 0;
-const float calFactor = 123.45; //calibrarion factor of loadCell
-String allMeasurements = ""; 
+const float calFactor = 123.45; // Calibration factor of the load cell
+String allMeasurements = "";
 
-//loadCell initiallization
+// Load cell initialization
 HX711 scale;
 
 void setup() {
   Serial.begin(9600);
   Wire.begin(8);
 
-  Serial.println("ready"); //comment before send to Arduino
+  Serial.println("ready"); // Comment before uploading to Arduino
 
   scale.begin(DOUT_PIN, PD_SCK_PIN);
 
@@ -39,25 +32,34 @@ void setup() {
 
 void loop() {
   if (Serial.available() > 0) {
+    // Receive the time duration for measurements as a string
     String input = Serial.readStringUntil('\n');
     timeOfMeasurement = input.toFloat();
 
     int iterations = timeOfMeasurement / measurementDelay;
 
     for (int i = 0; i < iterations; i++) {
-
       if (micros() - lastMeasurementTime >= measurementDelay) {
-        
         currentTimeToSend = micros();
+
+        // Send the current time for synchronization
         Wire.write((byte*)&currentTimeToSend, sizeof(unsigned long));
 
+        // Read the weight from the load cell
         long weight = scale.get_units();
-        allMeasurements += String(weight) + " "; //timer synchronizing
+
+        // Append the measurement to the string variable
+        allMeasurements += String(weight) + " ";
+
+        // Update the timestamp of the last measurement
         lastMeasurementTime = micros();
       }
     }
-    
-    Serial.println(allMeasurements);    //data sending 
+
+    // Send the string variable containing all measurements
+    Serial.println(allMeasurements);
+
+    // Reset the string variable for the next set of measurements
     allMeasurements = "";
   }
 }
