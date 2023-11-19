@@ -1,4 +1,5 @@
 #include <arduino.h>
+#include <Wire.h>
 
 static const int encoderPinA = 3;
 static const int encoderPinB = 2;
@@ -27,6 +28,7 @@ void setup(){
  // Inicjalizacja portu szeregowego dla monitora szeregowego (do celów diagnostycznych)
   Serial.begin(9600);
   Serial.println("ready");
+  Wire.begin(8);
   // Konfiguracja pinu przerwań jako wejście
   pinMode(encoderPinA, INPUT);
   pinMode(encoderPinB, INPUT);
@@ -37,12 +39,5 @@ void setup(){
 
   // Konfiguracja przerwania na narastające zbocze (RISING)
   attachInterrupt(digitalPinToInterrupt(encoderPinA), interruptService, RISING);
-
-
-
 }
-
-void loop(){
-
-  
-}
+void loop(){}
