@@ -5,6 +5,7 @@
 // Pins
 const byte DOUT_PIN = 2;
 const byte PD_SCK_PIN = 3;
+static const int encoderInterruptPin = 4;
 
 // Variables
 static int measurementDelay = 1; // Time delay between measurements in microseconds
@@ -19,7 +20,8 @@ HX711 scale;
 
 void setup() {
   Serial.begin(9600);
-  Wire.begin(8);
+
+  pinMode(encoderInterruptPin, OUTPUT);
 
   Serial.println("ready"); // Comment before uploading to Arduino
 
@@ -28,6 +30,9 @@ void setup() {
   scale.tare();
 
   scale.set_scale(calFactor);
+
+  // Initialize I2C communication
+  Wire.begin();
 }
 
 void loop() {
@@ -39,13 +44,12 @@ void loop() {
     int iterations = timeOfMeasurement / measurementDelay;
 
     for (int i = 0; i < iterations; i++) {
-      if (micros() - lastMeasurementTime >= measurementDelay) {
-        currentTimeToSend = micros();
 
-        // Send the current time for synchronization
-        Wire.write((byte*)&currentTimeToSend, sizeof(unsigned long));
+      digitalWrite(encoderInterruptPin, LOW); // Move if needed to tests
+      if (micros() - lastMeasurementTime >= measurementDelay) {
 
         // Read the weight from the load cell
+        digitalWrite(encoderInterruptPin, HIGH);
         long weight = scale.get_units();
 
         // Append the measurement to the string variable
@@ -58,6 +62,11 @@ void loop() {
 
     // Send the string variable containing all measurements
     Serial.println(allMeasurements);
+
+    // Send "stop" over I2C
+    Wire.beginTransmission(8); // 8 is the I2C address of the receiving device
+    Wire.write("stop");
+    Wire.endTransmission();
 
     // Reset the string variable for the next set of measurements
     allMeasurements = "";
