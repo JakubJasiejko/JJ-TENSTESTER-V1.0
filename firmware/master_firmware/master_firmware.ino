@@ -17,7 +17,7 @@ void setup() {
 
 void loop() {
 
-String rpm, angle, direction, time;
+String rpm, direction, time;
 
   if (Serial.available() > 0) {
     String receivedData = Serial.readStringUntil('\n');
@@ -26,14 +26,12 @@ String rpm, angle, direction, time;
     rpm = receivedData.substring(0, spaceIndex1);
     
     int spaceIndex2 = receivedData.indexOf(' ', spaceIndex1 + 1);
-    angle = receivedData.substring(spaceIndex1 + 1, spaceIndex2);
-    
-    int spaceIndex3 = receivedData.indexOf(' ', spaceIndex2 + 1);
-    direction = receivedData.substring(spaceIndex2 + 1, spaceIndex3);
-    
-    //time = receivedData.substring(spaceIndex3 + 1);
+    direction = receivedData.substring(spaceIndex1 + 1, spaceIndex2);
 
-    String sendData = rpm + " " + angle + " " + direction;
+    
+
+    String sendData = rpm + " " + direction;
+  
     Serial1.println(sendData);
 
     Serial3.println("start");

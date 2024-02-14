@@ -2,8 +2,9 @@ clc;
 clear;
 close all;
 
-global velocity testlenght;
-
+global velocity, 
+global crossSectionalArea;
+global initialLength; 
 
 %% COM PORT PANEL
 
@@ -16,6 +17,8 @@ uicontrol(uiPanel, 'Style', 'text', 'Position', [30 60 120 30], 'String', 'Numer
 confirmButton = uicontrol(uiPanel, 'Style', 'pushbutton', 'Position', [280 60 80 30], 'String', 'Zatwierdź', 'Callback', @confirmCallback);
 
 function confirmCallback(~, ~)
+    
+
     comPortEdit = findobj('Style', 'edit');
     comPort = get(comPortEdit, 'String');
 
@@ -28,18 +31,27 @@ end
 
 function receiveAndPlotData(Device)
     
+    global crossSectionalArea;
+    global initialLength;
+
+    stress = [];
     loadCellMeasurements = [];
     encoderMeasurements = [];
+    strain = [];
     
    figure;
-
+   button = uicontrol('Style', 'pushbutton', 'String', 'plot off', 'Position', [20, 0, 100, 30], 'Callback', @disablePlot);
+    function disablePlot(~, ~)
+    clf; 
+    close;
+end
 
     while 1
 
     dataString = readline(Device);
        measurements = str2double(strsplit(dataString));       
-            loadCell = measurements(1) / 512; %encoderPulsesPerRevolution * 2
-            encoder = measurements(2);
+            loadCell = measurements(1); 
+            encoder = abs(measurements(2) / 512); %encoderPulsesPerRevolution * 2
 
             fprintf('llll %f\n', loadCell);
             fprintf('eeee %f\n', encoder);
@@ -47,19 +59,42 @@ function receiveAndPlotData(Device)
             loadCellMeasurements = [loadCellMeasurements, loadCell];
             encoderMeasurements = [encoderMeasurements, encoder];
             
+            stress = [stress, loadCell/crossSectionalArea];
+            strain = [strain, ((encoder + initialLength)/initialLength)*100];
 
-         plot(encoderMeasurements, loadCellMeasurements);
+            maxForce = max(loadCellMeasurements);
+            maxStrain = max(stress);
+
+         subplot(2,1,1);
+         plot(encoderMeasurements, loadCellMeasurements, 'r-', 'LineWidth', 2);
          title('FORCE TO DISPLACEMENT DIAGRAM');
-         ylabel('FORCE [N]');
+         ylabel('force [N]');
          xlabel('displacement [mm]');
+         grid on;
+         text(0.7, 0.9, ['Max Force: ' num2str(maxForce) '[N]'], 'Units', 'normalized');
+         subplot(2,1,2);
+         plot(strain, stress, 'r-', 'LineWidth', 2);
+         title('STRESS TO STRAIN DIAGRAM');
+         ylabel('stress [MPa]');
+         xlabel('strain [%]');
+         grid on;
+
+        text(0.7, 0.9, ['Tensile strength: ' num2str(maxStrain) '[MPa]'], 'Units', 'normalized');
+         
+         
          drawnow;
+
+
+     
     end
+
+
 end
 
 
 %% MENU 
 function Control(comPort, Device)
-    fig = figure('Position', [100, 100, 600, 450], 'Name', 'Enter values', 'NumberTitle', 'off', 'MenuBar', 'none');
+    fig = figure('Position', [100, 100, 600, 450], 'Name', 'TENSTESTER V1.0', 'NumberTitle', 'off', 'MenuBar', 'none');
 
     welcome = uicontrol('Style', 'text', 'Position', [200, 400, 200, 40], 'String', 'TENSTESTER V1.0', 'FontSize', 15, 'FontWeight', 'bold');
     values = uicontrol('Style', 'text', 'Position', [0, 360, 200, 40], 'String', 'enter values:', 'FontSize', 12, 'FontWeight', 'bold');
@@ -76,34 +111,28 @@ function Control(comPort, Device)
     prompt4 = uicontrol('Style', 'text', 'Position', [0, 240, 200, 20], 'String', 'velocity [mm/min]:');
     edit4 = uicontrol('Style', 'edit', 'Position', [170, 240, 100, 20]);
 
-    prompt5 = uicontrol('Style', 'text', 'Position', [0, 210, 200, 20], 'String', 'test length [mm}:');
-    edit5 = uicontrol('Style', 'edit', 'Position', [170, 210, 100, 20]);
-
     confirmButton = uicontrol('Style', 'pushbutton', 'Position', [100, 150, 100, 30], 'String', 'Confirm', 'Callback', @setValues);
 
     executeButton = uicontrol('Style', 'pushbutton', 'Position', [340, 310, 100, 30], 'String', 'execute test', 'Callback', @execute);
 
     jogMenuButton = uicontrol('Style', 'pushbutton', 'Position', [340, 280, 100, 30], 'String', 'jog menu', 'Callback', @jog);
 
-    resetValuesButton = uicontrol('Style', 'pushbutton', 'Position', [340, 250, 100, 30], 'String', 'reset values', 'Callback', @resetValues);
-
-    resetPlotButton = uicontrol('Style', 'pushbutton', 'Position', [340, 220, 100, 30], 'String', 'reset plot', 'Callback', @resetPlot);
-
-    exitButton = uicontrol('Style', 'pushbutton', 'Position', [340, 190, 100, 30], 'String', 'exit', 'Callback', @exitTesting);
+    exitButton = uicontrol('Style', 'pushbutton', 'Position', [340, 250, 100, 30], 'String', 'exit', 'Callback', @exitTesting);
 
     % Text and buttons on the right
     resultText = uicontrol('Style', 'text', 'Position', [400, 350, 200, 60], 'String', '', 'HorizontalAlignment', 'left');
 
 function setValues(~, ~)
+    global crossSectionalArea;
     firstSideLength = str2double(get(edit1, 'String'));
     secondSideLength = str2double(get(edit2, 'String'));
+    global initialLength; 
     initialLength = str2double(get(edit3, 'String'));
-    global velocity testlenght;
+    global velocity;
     velocity = str2double(get(edit4, 'String'));
-    testlenght = str2double(get(edit5, 'String'));
 
     
-    if ~isnan(firstSideLength) && ~isnan(secondSideLength) && ~isnan(initialLength) && ~isnan(velocity) && ~isnan(testlenght)
+    if ~isnan(firstSideLength) && ~isnan(secondSideLength) && ~isnan(initialLength) && ~isnan(velocity) 
 
         crossSectionalArea = firstSideLength * secondSideLength;
 
@@ -114,7 +143,6 @@ function setValues(~, ~)
         disp(num2str(crossSectionalArea));
         disp('[mm^2]');
         disp(['test velocity: ', num2str(velocity), ' [mm/s]']);
-        disp(['test length: ', num2str(testlenght), ' [mm/s]']);
         
 
     else
@@ -123,56 +151,42 @@ function setValues(~, ~)
     end
 end
 function execute(~, ~)
-    fig5 = figure('Position', [100, 100, 300, 225], 'Name', 'TEST', 'NumberTitle', 'off', 'MenuBar', 'none');
 
-    global velocity testlenght;
+    global velocity;
 
-    RPM = (2 * 13.73) / velocity; % pitch * gearbox
-    angle = (360 / (13.73 * 2) * testlenght); % oneRev / gearbox * pitch
-    time = (testlenght / velocity) * 60000;
+    RPM = velocity /(2 * 13.73); % pitch * gearbox
 
-    dataString = sprintf('%d %f %s %f', RPM, angle, 'right', time);
+
+    dataString = sprintf('%d %s %s %f', RPM, 'left', 'start');
     % Assuming Device is a serial port object
     write(Device, dataString, 'string');
     disp(dataString);
-     exit1 = uicontrol('Style', 'pushbutton', 'Position', [100, 150, 100, 30], 'String', 'exit', 'Callback', @exitButton1);
-    
     receiveAndPlotData(Device);
-    
 
-    function exitButton1(~, ~)
-        close(fig5);
-    end
 
 end
-    
-    function resetValues(~, ~)
-     firstSideLength = 0;
-    secondSideLength = 0;
-    initialLength = 0;
-    velocity = 0;
-    testLength = 0;
-    crossSectionalArea  = 0; 
 
-    disp(['A side length: ', num2str(firstSideLength), ' [mm]']);
-    disp(['B side length: ', num2str(secondSideLength), ' [mm]']);
-    disp(['Initial length: ', num2str(initialLength), ' [mm]']);
-    disp('Cross-sectional area:');
-    disp(num2str(crossSectionalArea));
-    disp('[mm^2]');
-    disp(['test velocity: ', num2str(velocity), ' [mm/s]']);
-    disp(['test length: ', num2str(testLength), ' [mm/s]']);
     
-    end
-    
-    function resetPlot(~, ~)
-        %plot reseting
-    end
 
     function exitTesting(~, ~)
         clc;clear;close all;
     end
+    function jog(~, ~)
+    fig5 = figure('Position', [100, 100, 300, 225], 'Name', 'jog movement', 'NumberTitle', 'off', 'MenuBar', 'none');
+    upButton = uicontrol('Style', 'pushbutton', 'Position', [100, 150, 100, 30], 'String', 'upward', 'Callback', @upward);
+    downButton = uicontrol('Style', 'pushbutton', 'Position', [100, 120, 100, 30], 'String', 'downward', 'Callback', @downward);
+
+        function upward(~, ~)
+            dataString = '500 left';
+            write(Device, dataString, 'string');
+            
+        end
+
+        function downward(~, ~)
+            dataString = '500 right';
+            write(Device, dataString, 'string');
+        end
 
 
-        
+    end
    end %%control end

@@ -5,7 +5,9 @@
 
 
 #include <Arduino.h>
+void(* resetFunc) (void) = 0;
 
+static const int interruptButton = 2;
 static const int interruptPin = 5;
 static const int step1Pin = 4;
 static const int dir1Pin = 3;
@@ -20,8 +22,17 @@ float angle = 0;
 float RPM = 0;
 int microSteppingValue = 1;
 
+void interrupt(){
+    resetFunc();
+
+}
+
 void setup() {
-  Serial.begin(9600);
+    Serial.begin(9600);
+  
+  digitalWrite(interruptPin, HIGH);
+  delay(1000);
+  digitalWrite(interruptPin, LOW); 
 
 
   pinMode(interruptPin, OUTPUT); 
@@ -32,26 +43,26 @@ void setup() {
   pinMode(step2Pin, OUTPUT);
   pinMode(dir2Pin, OUTPUT);
 
+attachInterrupt(digitalPinToInterrupt(interruptButton), interrupt,FALLING);
 }
 
 void loop() {
   if (Serial.available() > 0) {
     String data = Serial.readStringUntil('\n');
-   //Serial.println(data); //COMMENT
+   Serial.println(data); //COMMENT
     int spaceIndex1 = data.indexOf(' ');
     int spaceIndex2 = data.indexOf(' ', spaceIndex1 + 1);
 
-    if (spaceIndex1 != -1 && spaceIndex2 != -1) {
+    if (spaceIndex1 != -1) {
       RPM = data.substring(0, spaceIndex1).toFloat();
-      angle = data.substring(spaceIndex1 + 1, spaceIndex2).toFloat();
-      String direction = data.substring(spaceIndex2 + 1);
+      String direction = data.substring(spaceIndex1 + 1, spaceIndex2);
       direction.trim();
 
 
 
       float delayDuration = (60 * 1000000) / (steps * RPM);
 
-      for (int i = 0; i < (angle * steps / 360); i++) {
+      while(1) {
         if (direction == "left") {
           digitalWrite(dir1Pin, HIGH);
           digitalWrite(dir2Pin, HIGH);
