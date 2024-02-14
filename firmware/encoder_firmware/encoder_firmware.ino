@@ -49,13 +49,13 @@ void receiveEvent() {
     if(receivedChar == 1){
 
     Serial.println(encoderPulses);
-    encoderString += String(encoderPulses) + " ";
+    //encoderString += String(encoderPulses) + " ";
 
 
     }
   if(receivedChar == 2){
-    Serial.println("skonczylem");
-    Serial.println(encoderString);
+    //Serial.println("skonczylem");
+    Serial.println("E");
     encoderString = " ";
   }
 

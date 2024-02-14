@@ -6,13 +6,14 @@
 
 #include <Arduino.h>
 
+static const int interruptPin = 5;
 static const int step1Pin = 4;
 static const int dir1Pin = 3;
-//static const int en1Pin = 4;
+
 
 static const int step2Pin = 11;
 static const int dir2Pin = 12;
-//static const int en2Pin = 12;
+
 
 const int steps = 200;
 float angle = 0;
@@ -21,15 +22,16 @@ int microSteppingValue = 1;
 
 void setup() {
   Serial.begin(9600);
-//Serial.println("WORKING"); //COMMENT
 
+
+  pinMode(interruptPin, OUTPUT); 
   pinMode(step1Pin, OUTPUT);
   pinMode(dir1Pin, OUTPUT);
-  //pinMode(en1Pin, OUTPUT);
+
 
   pinMode(step2Pin, OUTPUT);
   pinMode(dir2Pin, OUTPUT);
-  //pinMode(en2Pin, OUTPUT);
+
 }
 
 void loop() {
@@ -45,16 +47,11 @@ void loop() {
       String direction = data.substring(spaceIndex2 + 1);
       direction.trim();
 
-//       Serial.println(RPM);     //COMMENT 
-//        Serial.println(angle);   //COMMENT
-//         Serial.println(direction);  //COMMENT
 
 
       float delayDuration = (60 * 1000000) / (steps * RPM);
 
       for (int i = 0; i < (angle * steps / 360); i++) {
-        //Serial.println(direction); //COMMENT
-        //Serial.println(direction.length()); COMMENT
         if (direction == "left") {
           digitalWrite(dir1Pin, HIGH);
           digitalWrite(dir2Pin, HIGH);
@@ -74,6 +71,10 @@ void loop() {
         delayMicroseconds(delayDuration);
       }
     }
+    digitalWrite(interruptPin, HIGH);
+    delay(1000);
+    digitalWrite(interruptPin, LOW);
+
   }
 
 

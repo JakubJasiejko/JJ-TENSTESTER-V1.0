@@ -1,6 +1,5 @@
 #include <Arduino.h>
 
-
 bool measurement = false;
 String encoderString = " ";
 String loadCellString = " ";
@@ -31,30 +30,32 @@ String rpm, angle, direction, time;
     int spaceIndex3 = receivedData.indexOf(' ', spaceIndex2 + 1);
     direction = receivedData.substring(spaceIndex2 + 1, spaceIndex3);
     
-    //time = receivedData.substring(spaceIndex3 + 1);
+    time = receivedData.substring(spaceIndex3 + 1);
 
     String sendData = rpm + " " + angle + " " + direction;
     Serial1.println(sendData);
-
-    Serial3.println("start");
-
+    Serial.println(sendData);  //COMMENT
+    Serial3.println(time);
+   // delay(time.toInt()*100);
     measurement = true;
   }
 if (measurement == true){
-
-  String dataString = " ";
-  while (Serial2.available() && Serial3.available()){
-
-    String loadCellData = Serial3.readStringUntil('\n');
-
-    
-    String encoderData = Serial2.readStringUntil('\n');
-    
-    
-    Serial.println(loadCellData + " " + encoderData);
-
+  Serial.println("TRUE");
+  while (Serial2.available()){
+    encoderString = Serial2.readString();
+    Serial.println(encoderString);
   }
+  //delay(300);
+  //while (Serial3.available() > 0){
+    //loadCellString = Serial3.readStringUntil('\n');
+    //Serial.println(loadCellString);
+  //}
+  //delay(300);
 
+  measurement = false;
+  //encoderString = " ";
+  //loadCellString = " ";
 }
+
 
 }

@@ -47,12 +47,13 @@ function Control(comPort, Device)
 
     % initial menu
     figure;
-    button1 = uicontrol('Style', 'pushbutton', 'String', 'EXECUTE TEST', 'Position', [10 200 100 30], 'Callback', @startSlowTest);
-    button2 = uicontrol('Style', 'pushbutton', 'String', 'SET VALUES', 'Position', [10 160 100 30], 'Callback', @Control);
-    button3 = uicontrol('Style', 'pushbutton', 'String', 'UPWARD JOG MOVEMENT', 'Position', [10 120 140 30], 'Callback', @startYoungModulusTest);
-    button4 = uicontrol('Style', 'pushbutton', 'String', 'DOWNWARD JOG MOVEMENT', 'Position', [10 80 120 30], 'Callback', @startUpwardMovement);
-    button5 = uicontrol('Style', 'pushbutton', 'String', 'RESET PLOTS', 'Position', [10 40 140 30], 'Callback', @startDownwardMovement);
-    
+    button1 = uicontrol('Style', 'pushbutton', 'String', 'SLOW TEST', 'Position', [10 200 100 30], 'Callback', @startSlowTest);
+    button2 = uicontrol('Style', 'pushbutton', 'String', 'FAST TEST', 'Position', [10 160 100 30], 'Callback', @startFastTest);
+    button3 = uicontrol('Style', 'pushbutton', 'String', 'YOUNG MODULUS TEST', 'Position', [10 120 140 30], 'Callback', @startYoungModulusTest);
+    button4 = uicontrol('Style', 'pushbutton', 'String', 'UPWARD MOVEMENT', 'Position', [10 80 120 30], 'Callback', @startUpwardMovement);
+    button5 = uicontrol('Style', 'pushbutton', 'String', 'DOWNWARD MOVEMENT', 'Position', [10 40 140 30], 'Callback', @startDownwardMovement);
+    resetButton = uicontrol('Style', 'pushbutton', 'String', 'RESET PLOT', 'Position', [10 10 100 30], 'Callback', @resetPlot);
+    disableButton = uicontrol('Style', 'pushbutton', 'String', 'TURN OFF', 'Position', [10 240 100 30], 'Callback', @turnOff);
 
     %values menu
     fig = figure('Position', [100, 100, 600, 450], 'Name', 'Enter values', 'NumberTitle', 'off', 'MenuBar', 'none');
@@ -67,11 +68,26 @@ function Control(comPort, Device)
     edit3 = uicontrol('Style', 'edit', 'Position', [220, 270, 100, 20]);
 
     % Dodatkowe zmienne
-    prompt4 = uicontrol('Style', 'text', 'Position', [20, 240, 200, 20], 'String', 'velocity [mm/s]:');
+    prompt4 = uicontrol('Style', 'text', 'Position', [20, 240, 200, 20], 'String', 'fast test velocity [mm/s]:');
     edit4 = uicontrol('Style', 'edit', 'Position', [220, 240, 100, 20]);
 
-    prompt5 = uicontrol('Style', 'text', 'Position', [20, 210, 200, 20], 'String', 'test lenght [mm/s]:');
+    prompt5 = uicontrol('Style', 'text', 'Position', [20, 210, 200, 20], 'String', 'slow test velocity [mm/s]:');
     edit5 = uicontrol('Style', 'edit', 'Position', [220, 210, 100, 20]);
+
+    prompt6 = uicontrol('Style', 'text', 'Position', [20, 180, 200, 20], 'String', 'young modulus first part test [GPa]:');
+    edit6 = uicontrol('Style', 'edit', 'Position', [220, 180, 100, 20]);
+
+    prompt7 = uicontrol('Style', 'text', 'Position', [20, 150, 200, 20], 'String', 'young modulus second part test [GPa]:');
+    edit7 = uicontrol('Style', 'edit', 'Position', [220, 150, 100, 20]);
+
+    prompt8 = uicontrol('Style', 'text', 'Position', [20, 120, 200, 20], 'String', 'fast test length [mm]:');
+    edit8 = uicontrol('Style', 'edit', 'Position', [220, 120, 100, 20]);
+
+    prompt10 = uicontrol('Style', 'text', 'Position', [20, 60, 200, 20], 'String', 'length of first part modulus test [mm]:');
+    edit10 = uicontrol('Style', 'edit', 'Position', [220, 60, 100, 20]);
+
+    prompt11 = uicontrol('Style', 'text', 'Position', [20, 30, 200, 20], 'String', 'length of second part modulus test [mm]:');
+    edit11 = uicontrol('Style', 'edit', 'Position', [220, 30, 100, 20]);
 
     confirmButton = uicontrol('Style', 'pushbutton', 'Position', [100, 0, 100, 30], 'String', 'Confirm', 'Callback', @confirmCallback);
 
@@ -88,9 +104,14 @@ function Control(comPort, Device)
         c = str2double(get(edit3, 'String')); 
 
         % Dodatkowe zmienne
-        velocity = str2double(get(edit4, 'String'));
-        testLenght = str2double(get(edit5, 'String')); 
+        fastTestVelocity = str2double(get(edit4, 'String'));
+        slowTestVelocity = str2double(get(edit5, 'String')); 
+        youngModulusFirstPart = str2double(get(edit6, 'String')); 
+        youngModulusSecondPart = str2double(get(edit7, 'String')); 
+        testLength = str2double(get(edit8, 'String')); 
 
+        lengthFirstPartModulusTest = str2double(get(edit10, 'String')); 
+        lengthSecondPartModulusTest = str2double(get(edit11, 'String')); 
 
         % Sprawdzanie, czy wprowadzone wartości są poprawne
         if ~isnan(a) && ~isnan(b) && ~isnan(c) && ~isnan(fastTestVelocity) && ~isnan(slowTestVelocity) && ~isnan(youngModulusFirstPart) && ~isnan(youngModulusSecondPart) && ~isnan(testLength)  && ~isnan(lengthFirstPartModulusTest) && ~isnan(lengthSecondPartModulusTest)
@@ -108,9 +129,14 @@ function Control(comPort, Device)
             disp(num2str(crossSectionalArea));
             disp('[mm^2]');
 
-            disp(['test velocity: ', num2str(velocity), ' [mm/s]']);
-            disp(['test lenght: ', num2str(testLenght), ' [mm/s]']);
-            
+            disp(['Fast test velocity: ', num2str(fastTestVelocity), ' [mm/s]']);
+            disp(['Slow test velocity: ', num2str(slowTestVelocity), ' [mm/s]']);
+            disp(['Young modulus first part test velocity: ', num2str(youngModulusFirstPart), ' [GPa]']);
+            disp(['Young modulus second part velocity: ', num2str(youngModulusSecondPart), ' [GPa]']);
+            disp(['Fast test length: ', num2str(testLength), ' [mm]']);
+
+            disp(['Length of first part modulus test: ', num2str(lengthFirstPartModulusTest), ' [mm]']);
+            disp(['Length of second part modulus test: ', num2str(lengthSecondPartModulusTest), ' [mm]']);
 
             % Zamykanie okna GUI
             close(fig);
@@ -119,83 +145,3 @@ function Control(comPort, Device)
             errordlg('Wprowadź poprawne wartości liczbowe.', 'Błąd', 'modal');
         end
 
-   
-%%MACHINE VALUES: 
-
- dane = [slowTestVelocity, fastTestVelocity, youngModulusFirstPart, youngModulusSecondPart, testLength, lengthFirstPartModulusTest, lengthSecondPartModulusTest]; % Zastąp tym danymi, które chcesz wysłać
-
-% Wysyłanie danych
-for i = 1:7
-    fprintf(Device, '%d\n', dane(i));
-end
-    end
-
-    % Funkcje dla przycisków
-    function startSlowTest(~, ~)
-        write(Device, "M11", 'string');
-    end
-
-    function startFastTest(~, ~)
-        write(Device, "M12", 'string');
-    end
-
-    function startYoungModulusTest(~, ~)
-        write(Device, "M13", 'string');
-    end
-
-    function startUpwardMovement(~, ~)
-        write(Device, "M1", 'string');
-    end
-
-    function startDownwardMovement(~, ~)
-        write(Device, "M2", 'string');
-    end
-
-    % Funkcja do resetowania wykresu
-    function resetPlot(~, ~)
-        measurmentData = [];
-        displacementData = [];
-        maxForceValue = 0;
-        clf(2,"reset"); % Wyczyszczenie aktualnego wykresu
-        figure(2); % Przełączenie się do nowego okna
-    end
-
-    function turnOff(~, ~)
-        fclose('Device');
-        clc; clear; close all;
-    end
-
-    while true
-        data = readline(Device);
-        data = str2double(strsplit(data, ','));
-        measurement = data(1);
-        displacement = data(2);
-
-        measurmentData = [measurmentData, measurement];
-        displacementData = [displacementData, displacement];
-
-        figure;
-        plot(displacementData , measurmentData);
-        title("FORCE TO DISPLACEMENT DIAGRAM");
-        xlabel("dispacement [mm]");
-        ylabel("force [N]");
-
-        % Aktualizacja największej wartości siły
-        maxForceValue = max(maxForceValue, max(measurmentData));
-
-        maxTensStrenght = maxForceValue / crossSectionalArea;
-
-        text(0.7, 0.9, ['Max Force: ' num2str(maxForceValue)], 'Units', 'normalized');
-        text(0.7, 0.8, ['Tensile strength: ' num2str(maxTensStrenght)], 'Units', 'normalized');
-        drawnow; % Aktualizacja wykresu
-
-        tensStrenght = measurmentData / crossSectionalArea;
-        elongation = (displacementData / initialLength) * 100; %%PERCENT
-
-        figure;
-        plot(elongation, tensStrenght);
-        title("TENSION TO ELONGATION DIAGRAM");
-        xlabel("elongation [%]");
-        ylabel("tension [MPa]");
-    end
-end
